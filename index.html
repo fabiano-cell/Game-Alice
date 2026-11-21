@@ -41,6 +41,7 @@
   --sun: #ffcf5c; --plate: #26403b; color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { min-height: 100%; }
 body {
   margin: 0;
@@ -59,12 +60,6 @@ header.top { display: flex; align-items: center; justify-content: space-between;
 .brand { display: flex; align-items: baseline; gap: 8px; }
 .brand h1 { font-family: var(--font-display); font-weight: 800; font-size: 1.7rem; line-height: 1; margin: 0; letter-spacing: -0.01em; }
 .brand h1 .en { color: var(--tomato); }
-.tabs { display: flex; gap: 6px; background: var(--surface); border: 2px solid var(--line); border-radius: 999px; padding: 4px; }
-.tabs button {
-  font: 800 0.9rem var(--font-body); border: 0; background: transparent; color: var(--muted);
-  padding: 8px 14px; border-radius: 999px; cursor: pointer;
-}
-.tabs button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 
 /* status row */
 .status { display: flex; align-items: center; gap: 12px; }
@@ -155,8 +150,78 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
 .group-title { grid-column: 1 / -1; margin: 10px 0 0; font-family: var(--font-display); font-size: 1.3rem; line-height: 1.1; color: var(--tomato); }
 .hint { color: var(--muted); font-weight: 700; margin: 0; text-align: center; }
 
+/* activity menu */
+.modes { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
+.modes button {
+  font: 800 0.95rem var(--font-body); border: 2px solid var(--line); background: var(--surface); color: var(--ink);
+  padding: 8px 14px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+}
+.modes button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+/* complete the word */
+.slots { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.slot {
+  width: 44px; height: 54px; border-radius: 12px; display: grid; place-items: center;
+  font: 800 1.9rem var(--font-display); line-height: 1; background: var(--bg); border: 2px solid transparent;
+}
+.slot.blank { border: 2px dashed var(--tomato); background: var(--surface); }
+.slot.blank.now { box-shadow: 0 0 0 3px var(--sun); }
+.slot.filled { background: var(--leaf-soft); border: 2px solid var(--leaf); }
+.letters { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.letters button {
+  width: 58px; height: 58px; border-radius: 16px; cursor: pointer;
+  font: 800 1.8rem var(--font-display); line-height: 1; color: var(--ink);
+  background: var(--surface); border: 2px solid var(--line); box-shadow: 0 4px 0 var(--line);
+}
+.letters button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+.letters button.used { visibility: hidden; }
+.letters button.wrong { background: var(--wrong-soft); border-color: var(--tomato); animation: shake .4s; }
+
+/* match picture to word */
+.match { position: relative; display: grid; grid-template-columns: 1fr 1fr; column-gap: 56px; row-gap: 10px; }
+.match svg.lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.mcard {
+  min-height: 74px; border-radius: 16px; background: var(--surface); border: 2px solid var(--line);
+  box-shadow: 0 4px 0 var(--line); cursor: pointer; color: var(--ink); padding: 6px;
+  display: grid; place-items: center; position: relative; z-index: 1;
+}
+.mcard .food { font-size: 46px; }
+.mcard .food svg { width: 64px; }
+.mcard.word { font: 800 1.2rem var(--font-display); line-height: 1.1; overflow-wrap: anywhere; }
+.mcard.sel { border-color: var(--sun); box-shadow: 0 0 0 4px var(--sun); }
+.mcard.done { background: var(--leaf-soft); border-color: var(--leaf); box-shadow: 0 4px 0 var(--leaf); cursor: default; }
+.mcard.wrong { background: var(--wrong-soft); border-color: var(--tomato); animation: shake .4s; }
+
+/* word search */
+.clues { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.clue {
+  width: 92px; padding: 8px 4px 6px; border-radius: 16px; background: var(--surface); border: 2px solid var(--line);
+  display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; color: var(--ink); font-family: var(--font-body);
+}
+.clue .food { font-size: 40px; height: 48px; }
+.clue .food svg { width: 54px; }
+.clue .cw { font: 800 1rem var(--font-display); letter-spacing: .12em; color: var(--muted); }
+.clue.found { background: var(--leaf-soft); border-color: var(--leaf); }
+.clue.found .cw { color: var(--ink); letter-spacing: .02em; }
+.ws {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; width: 100%; max-width: 420px; margin: 0 auto;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.ws .cell {
+  aspect-ratio: 1; display: grid; place-items: center; border-radius: 10px; cursor: pointer;
+  font: 800 1.35rem var(--font-display); line-height: 1; text-transform: uppercase;
+  background: var(--surface); border: 2px solid var(--line); color: var(--ink);
+}
+.ws .cell.found { background: var(--leaf-soft); border-color: var(--leaf); }
+.ws .cell.sel { background: var(--sun); border-color: var(--sun); color: #1f3330; }
+.ws .cell.bad { background: var(--wrong-soft); border-color: var(--tomato); }
+
+.win { text-align: center; display: flex; flex-direction: column; gap: 10px; }
+.win h2 { font-family: var(--font-display); font-size: 1.8rem; margin: 0; line-height: 1.1; text-wrap: balance; }
+.win p { margin: 0; color: var(--muted); font-weight: 700; }
+
 @media (prefers-reduced-motion: reduce) {
-  .pop, .answers button.wrong { animation: none; }
+  .pop, .answers button.wrong, .letters button.wrong, .mcard.wrong { animation: none; }
   .bar > i { transition: none; }
 }
 @media (max-width: 380px) {
@@ -168,9 +233,12 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
 <div class="wrap">
   <header class="top">
     <div class="brand"><h1>Lancheira <span class="en">in English</span></h1></div>
-    <nav class="tabs" aria-label="Modo">
-      <button id="tab-play" aria-pressed="true">Jogar</button>
-      <button id="tab-study" aria-pressed="false">Estudar</button>
+    <nav class="modes" aria-label="Atividades">
+      <button type="button" data-mode="quiz" aria-pressed="true">Quiz</button>
+      <button type="button" data-mode="complete" aria-pressed="false">Complete</button>
+      <button type="button" data-mode="match" aria-pressed="false">Ligar</button>
+      <button type="button" data-mode="search" aria-pressed="false">Caça-palavras</button>
+      <button type="button" data-mode="study" aria-pressed="false">Estudar</button>
     </nav>
   </header>
 
@@ -178,7 +246,7 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
     <div class="wrap" style="gap:16px">
       <div class="status">
         <div class="bar" aria-hidden="true"><i id="bar"></i></div>
-        <span class="pill" id="count">1/14</span>
+        <span class="pill" id="count">1/10</span>
         <span class="pill" id="score" title="Acertos">✔ 0</span>
       </div>
 
@@ -207,9 +275,48 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
     <button class="next" id="again" style="width:100%">Jogar de novo</button>
   </section>
 
+  <section id="complete" hidden>
+    <div class="wrap" style="gap:16px">
+      <div class="status">
+        <div class="bar" aria-hidden="true"><i id="c-bar"></i></div>
+        <span class="pill" id="c-count">1/8</span>
+        <span class="pill" id="c-score" title="Sem errar">✔ 0</span>
+      </div>
+      <div class="card">
+        <button class="speak" id="c-speak" aria-label="Ouvir a palavra em inglês">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+        </button>
+        <p class="question">Complete the word</p>
+        <div class="plate"><div class="food pop" id="c-food"></div></div>
+        <div class="slots" id="c-slots"></div>
+        <div class="reveal" id="c-reveal" style="min-height:2.6em"></div>
+      </div>
+      <div class="letters" id="c-letters"></div>
+      <button class="next" id="c-next" hidden>Próxima →</button>
+    </div>
+    <div id="c-done" hidden></div>
+  </section>
+
+  <section id="match" hidden>
+    <div class="wrap" style="gap:14px">
+      <p class="hint">Toque em uma imagem e depois no nome em inglês para ligar.</p>
+      <div class="match" id="m-board"><svg class="lines" id="m-lines" aria-hidden="true"></svg></div>
+      <div class="card win" id="m-win" hidden></div>
+    </div>
+  </section>
+
+  <section id="search" hidden>
+    <div class="wrap" style="gap:14px">
+      <p class="hint">Encontre no quadro o nome em inglês de cada imagem. Arraste o dedo sobre a palavra, ou toque na primeira e na última letra.</p>
+      <div class="clues" id="s-clues"></div>
+      <div class="ws" id="s-grid"></div>
+      <div class="card win" id="s-win" hidden></div>
+    </div>
+  </section>
+
   <section id="study" hidden>
     <div class="wrap" style="gap:14px">
-      <p class="hint">Toque em uma comida para ouvir o nome em inglês.</p>
+      <p class="hint">Toque em uma imagem para ouvir o nome em inglês.</p>
       <div class="grid" id="grid"></div>
     </div>
   </section>
@@ -489,16 +596,265 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
     });
   });
 
-  function setMode(m) {
-    const play = m === "play";
-    $("tab-play").setAttribute("aria-pressed", play);
-    $("tab-study").setAttribute("aria-pressed", !play);
-    $("study").hidden = play;
-    if (play) { $("play").hidden = idx >= ROUNDS; $("done").hidden = idx < ROUNDS; }
-    else { $("play").hidden = true; $("done").hidden = true; }
+  // ---- shared: results card ----
+  function resultHTML(score, total, title) {
+    const pct = score / total;
+    const n = pct === 1 ? 3 : pct >= 0.7 ? 2 : pct >= 0.4 ? 1 : 0;
+    const head = title || (n === 3 ? "Perfect!" : n === 2 ? "Great job!" : n === 1 ? "Good! Vamos treinar mais?" : "Keep trying! Você consegue!");
+    if (n >= 2) tone([523, 659, 784, 1047]);
+    return `<div class="stars">${[0, 1, 2].map(i => `<span class="${i < n ? "" : "off"}">★</span>`).join("")}</div><h2>${head}</h2>`;
   }
-  $("tab-play").addEventListener("click", () => setMode("play"));
-  $("tab-study").addEventListener("click", () => setMode("study"));
+  const missedChips = list => list.map(f => `<button class="chip" type="button" data-say="${f.en}"><span class="mini">${picHTML(f)}</span>${f.en}</button>`).join("");
+  document.addEventListener("click", e => { const c = e.target.closest("[data-say]"); if (c) say(c.dataset.say); });
+
+  // ---- complete the word ----
+  const SIMPLE = FOODS.filter(f => /^[a-z]+$/.test(f.en) && f.en.length <= 6);
+  const C_ROUNDS = 8;
+  const ABC = "abcdefghijklmnopqrstuvwxyz";
+  let cs = null;
+
+  function cStart() {
+    cs = { order: shuffle(SIMPLE).slice(0, C_ROUNDS), idx: 0, score: 0, missed: [] };
+    $("c-done").hidden = true; $("complete").querySelector(".wrap").hidden = false;
+    cShow();
+  }
+  function cShow() {
+    const f = cs.order[cs.idx], w = f.en;
+    const nBlank = w.length <= 4 ? 1 : 2;
+    const blanks = shuffle([...w].map((_, i) => i)).slice(0, nBlank).sort((a, b) => a - b);
+    Object.assign(cs, { f, blanks, filled: 0, errors: 0, done: false });
+    $("c-count").textContent = `${cs.idx + 1}/${C_ROUNDS}`;
+    $("c-score").textContent = `✔ ${cs.score}`;
+    $("c-bar").style.width = `${(cs.idx / C_ROUNDS) * 100}%`;
+    const food = $("c-food"); food.innerHTML = picHTML(f);
+    food.classList.remove("pop"); void food.offsetWidth; food.classList.add("pop");
+    $("c-slots").innerHTML = [...w].map((ch, i) => blanks.includes(i)
+      ? `<span class="slot blank" data-i="${i}"></span>` : `<span class="slot">${ch}</span>`).join("");
+    $("c-reveal").innerHTML = `<span class="pt">${f.pt}</span>`;
+    const need = blanks.map(i => w[i]);
+    const extra = shuffle([...ABC].filter(ch => !w.includes(ch))).slice(0, 5 - need.length);
+    const box = $("c-letters"); box.innerHTML = "";
+    shuffle([...need, ...extra]).forEach(ch => {
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = ch;
+      b.addEventListener("click", () => cTap(b, ch));
+      box.appendChild(b);
+    });
+    $("c-next").hidden = true;
+    cMarkNow();
+  }
+  function cMarkNow() {
+    const at = cs.done ? -1 : cs.blanks[cs.filled];
+    $("c-slots").querySelectorAll(".slot.blank").forEach(s => s.classList.toggle("now", +s.dataset.i === at));
+  }
+  function cTap(btn, ch) {
+    if (cs.done) return;
+    const pos = cs.blanks[cs.filled];
+    if (ch === cs.f.en[pos]) {
+      const slot = $("c-slots").querySelector(`.slot[data-i="${pos}"]`);
+      slot.textContent = ch; slot.classList.remove("blank", "now"); slot.classList.add("filled");
+      btn.classList.add("used"); cs.filled++; tone([700]);
+      if (cs.filled === cs.blanks.length) return cDone();
+      cMarkNow();
+    } else {
+      cs.errors++; tone([300, 220]);
+      btn.classList.remove("wrong"); void btn.offsetWidth; btn.classList.add("wrong");
+      setTimeout(() => btn.classList.remove("wrong"), 600);
+    }
+  }
+  function cDone() {
+    cs.done = true;
+    const clean = cs.errors === 0;
+    if (clean) cs.score++; else cs.missed.push(cs.f);
+    tone([660, 880, 1175]);
+    $("c-score").textContent = `✔ ${cs.score}`;
+    $("c-bar").style.width = `${((cs.idx + 1) / C_ROUNDS) * 100}%`;
+    $("c-reveal").innerHTML = `<span class="pt">${clean ? "Perfeito!" : "Muito bem!"} ${cs.f.pt}</span><span class="say">fala-se <b>${cs.f.pron}</b></span>`;
+    [...$("c-letters").children].forEach(b => b.disabled = true);
+    setTimeout(() => say(cs.f.en), 300);
+    $("c-next").textContent = cs.idx + 1 < C_ROUNDS ? "Próxima →" : "Ver resultado";
+    $("c-next").hidden = false;
+    $("c-next").focus({ preventScroll: true });
+  }
+  function cFinish() {
+    $("complete").querySelector(".wrap").hidden = true;
+    const d = $("c-done"); d.hidden = false;
+    d.innerHTML = `<div class="card result">${resultHTML(cs.score, C_ROUNDS)}
+      <p>Você completou ${cs.score} de ${C_ROUNDS} sem errar nenhuma letra.${cs.missed.length ? " Treine estas:" : ""}</p>
+      <div class="missed">${missedChips(cs.missed)}</div></div>
+      <div style="height:16px"></div><button class="next" id="c-again" style="width:100%">Jogar de novo</button>`;
+    $("c-again").addEventListener("click", cStart);
+  }
+  $("c-next").addEventListener("click", () => { cs.idx++; cs.idx < C_ROUNDS ? cShow() : cFinish(); });
+  $("c-speak").addEventListener("click", () => cs && say(cs.f.en));
+
+  // ---- match picture to word ----
+  const M_N = 5;
+  let ms = null;
+  function mStart() {
+    const items = shuffle(FOODS).slice(0, M_N);
+    ms = { items, sel: null, pairs: [], errors: 0 };
+    const board = $("m-board");
+    board.querySelectorAll(".mcard").forEach(n => n.remove());
+    $("m-win").hidden = true;
+    const mk = (f, side, row) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = `mcard ${side === "pic" ? "pic" : "word"}`;
+      b.style.gridColumn = side === "pic" ? 1 : 2; b.style.gridRow = row + 1;
+      b.innerHTML = side === "pic" ? `<span class="food">${picHTML(f)}</span>` : f.en;
+      b.setAttribute("aria-label", side === "pic" ? "imagem" : f.en);
+      b.addEventListener("click", () => mTap(b, f, side));
+      board.appendChild(b);
+    };
+    shuffle(items).forEach((f, i) => mk(f, "pic", i));
+    shuffle(items).forEach((f, i) => mk(f, "word", i));
+    mDraw();
+  }
+  function mTap(el, f, side) {
+    if (el.classList.contains("done")) return;
+    if (side === "word") say(f.en);
+    const s = ms.sel;
+    if (!s || s.side === side) {
+      if (s) s.el.classList.remove("sel");
+      ms.sel = { el, f, side }; el.classList.add("sel");
+      return;
+    }
+    s.el.classList.remove("sel"); ms.sel = null;
+    if (s.f === f) {
+      el.classList.add("done"); s.el.classList.add("done");
+      const pic = side === "pic" ? el : s.el, word = side === "pic" ? s.el : el;
+      ms.pairs.push({ pic, word }); tone([660, 880]); mDraw();
+      if (ms.pairs.length === M_N) mWin();
+    } else {
+      ms.errors++; tone([300, 220]);
+      [el, s.el].forEach(n => { n.classList.remove("wrong"); void n.offsetWidth; n.classList.add("wrong"); setTimeout(() => n.classList.remove("wrong"), 600); });
+    }
+  }
+  function mDraw() {
+    if (!ms) return;
+    const board = $("m-board"), box = board.getBoundingClientRect();
+    $("m-lines").innerHTML = ms.pairs.map(({ pic, word }) => {
+      const a = pic.getBoundingClientRect(), b = word.getBoundingClientRect();
+      const x1 = a.right - box.left, y1 = a.top + a.height / 2 - box.top;
+      const x2 = b.left - box.left, y2 = b.top + b.height / 2 - box.top;
+      return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--leaf)" stroke-width="5" stroke-linecap="round"/><circle cx="${x1}" cy="${y1}" r="6" fill="var(--leaf)"/><circle cx="${x2}" cy="${y2}" r="6" fill="var(--leaf)"/>`;
+    }).join("");
+  }
+  function mWin() {
+    const w = $("m-win"); w.hidden = false;
+    const score = Math.max(0, M_N - ms.errors);
+    w.innerHTML = `${resultHTML(score, M_N, ms.errors === 0 ? "Perfect! Ligou tudo certo!" : "Great job!")}
+      <p>${ms.errors === 0 ? "Nenhum erro." : `Você errou ${ms.errors} ${ms.errors === 1 ? "vez" : "vezes"}.`}</p>
+      <button class="next" id="m-again">Nova rodada</button>`;
+    $("m-again").addEventListener("click", mStart);
+  }
+  window.addEventListener("resize", () => mDraw());
+
+  // ---- word search ----
+  const WS = 8, WS_N = 5;
+  let ss = null;
+  function sStart() {
+    const pool = shuffle(FOODS.filter(f => /^[a-z]+$/.test(f.en) && f.en.length >= 3 && f.en.length <= WS));
+    const grid = Array.from({ length: WS }, () => Array(WS).fill(""));
+    const placed = [];
+    for (const f of pool) {
+      if (placed.length === WS_N) break;
+      const w = f.en;
+      for (let t = 0; t < 200; t++) {
+        const down = Math.random() < 0.5;
+        const r = Math.floor(Math.random() * (down ? WS - w.length + 1 : WS));
+        const c = Math.floor(Math.random() * (down ? WS : WS - w.length + 1));
+        const cells = [...w].map((_, k) => down ? [r + k, c] : [r, c + k]);
+        if (cells.every(([y, x], k) => grid[y][x] === "" || grid[y][x] === w[k])) {
+          cells.forEach(([y, x], k) => grid[y][x] = w[k]);
+          placed.push({ f, cells, found: false });
+          break;
+        }
+      }
+    }
+    for (let y = 0; y < WS; y++) for (let x = 0; x < WS; x++) if (!grid[y][x]) grid[y][x] = ABC[Math.floor(Math.random() * 26)];
+    ss = { grid, placed, start: null, end: null, pending: null };
+    $("s-win").hidden = true;
+    $("s-clues").innerHTML = placed.map((p, i) =>
+      `<button class="clue" type="button" data-k="${i}"><span class="food">${picHTML(p.f)}</span><span class="cw">${"_ ".repeat(p.f.en.length).trim()}</span></button>`).join("");
+    $("s-clues").querySelectorAll(".clue").forEach(b => b.addEventListener("click", () => {
+      const p = placed[+b.dataset.k]; if (p.found) say(p.f.en);
+    }));
+    $("s-grid").innerHTML = grid.flatMap((row, y) => row.map((ch, x) => `<div class="cell" data-y="${y}" data-x="${x}">${ch}</div>`)).join("");
+  }
+  const cellAt = (x, y) => { const el = document.elementFromPoint(x, y); return el && el.closest("#s-grid .cell"); };
+  const pos = el => [+el.dataset.y, +el.dataset.x];
+  function lineCells(a, b) {
+    const [y1, x1] = pos(a), [y2, x2] = pos(b);
+    if (y1 !== y2 && x1 !== x2) return null;
+    const n = Math.max(Math.abs(y2 - y1), Math.abs(x2 - x1));
+    const dy = Math.sign(y2 - y1), dx = Math.sign(x2 - x1);
+    return Array.from({ length: n + 1 }, (_, k) => [y1 + dy * k, x1 + dx * k]);
+  }
+  const cellEl = ([y, x]) => $("s-grid").children[y * WS + x];
+  function sPreview() {
+    $("s-grid").querySelectorAll(".sel").forEach(n => n.classList.remove("sel"));
+    if (ss.pending) ss.pending.classList.add("sel");
+    if (!ss.start) return;
+    (lineCells(ss.start, ss.end) || [pos(ss.start)]).forEach(c => cellEl(c).classList.add("sel"));
+  }
+  function sTry(a, b) {
+    const cells = lineCells(a, b);
+    const clear = () => $("s-grid").querySelectorAll(".sel").forEach(n => n.classList.remove("sel"));
+    if (!cells) { clear(); return; }
+    const str = cells.map(([y, x]) => ss.grid[y][x]).join("");
+    const rev = [...str].reverse().join("");
+    const hit = ss.placed.find(p => !p.found && (p.f.en === str || p.f.en === rev));
+    clear();
+    if (!hit) {
+      tone([300, 220]);
+      cells.forEach(c => { const el = cellEl(c); el.classList.add("bad"); setTimeout(() => el.classList.remove("bad"), 450); });
+      return;
+    }
+    hit.found = true;
+    hit.cells.forEach(c => cellEl(c).classList.add("found"));
+    const clue = $("s-clues").children[ss.placed.indexOf(hit)];
+    clue.classList.add("found"); clue.querySelector(".cw").textContent = hit.f.en;
+    tone([660, 880, 1175]); setTimeout(() => say(hit.f.en), 250);
+    if (ss.placed.every(p => p.found)) {
+      const w = $("s-win"); w.hidden = false;
+      w.innerHTML = `${resultHTML(1, 1, "Você achou todas as palavras!")}<button class="next" id="s-again">Novo caça-palavras</button>`;
+      $("s-again").addEventListener("click", sStart);
+    }
+  }
+  const sg = $("s-grid");
+  sg.addEventListener("pointerdown", e => {
+    const cell = e.target.closest(".cell"); if (!cell) return;
+    e.preventDefault();
+    if (ss.pending && ss.pending !== cell) { const p = ss.pending; ss.pending = null; sTry(p, cell); return; }
+    ss.pending = null; ss.start = ss.end = cell; sPreview();
+  });
+  sg.addEventListener("pointermove", e => {
+    if (!ss || !ss.start) return;
+    const cell = cellAt(e.clientX, e.clientY);
+    if (cell && cell !== ss.end) { ss.end = cell; sPreview(); }
+  });
+  const sUp = () => {
+    if (!ss || !ss.start) return;
+    const a = ss.start, b = ss.end; ss.start = ss.end = null;
+    if (a !== b) sTry(a, b); else { ss.pending = a; sPreview(); }
+  };
+  window.addEventListener("pointerup", sUp);
+  window.addEventListener("pointercancel", sUp);
+
+  // ---- menu ----
+  const MODES = ["quiz", "complete", "match", "search", "study"];
+  const started = {};
+  const starters = { complete: cStart, match: mStart, search: sStart };
+  function setMode(m) {
+    document.querySelectorAll(".modes button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m));
+    $("play").hidden = $("done").hidden = true;
+    ["complete", "match", "search", "study"].forEach(id => $(id).hidden = id !== m);
+    if (m === "quiz") { $("play").hidden = idx >= ROUNDS; $("done").hidden = idx < ROUNDS; }
+    if (starters[m] && !started[m]) { started[m] = true; starters[m](); }
+    if (m === "match") requestAnimationFrame(mDraw);
+  }
+  document.querySelectorAll(".modes button").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
 
   start();
 })();
