@@ -87,7 +87,7 @@ header.top { display: flex; align-items: center; justify-content: space-between;
   display: grid; place-items: center; position: relative;
 }
 .food { font-size: min(118px, 32vw); line-height: 1; display: grid; place-items: center; user-select: none; }
-.food svg { width: min(130px, 36vw); height: auto; }
+.food svg { width: min(165px, 46vw); height: auto; }
 .pop { animation: pop .45s cubic-bezier(.3,1.6,.5,1); }
 @keyframes pop { from { transform: scale(.4) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
 .reveal { min-height: 3.4em; text-align: center; display: flex; flex-direction: column; gap: 2px; align-items: center; }
@@ -106,6 +106,7 @@ header.top { display: flex; align-items: center; justify-content: space-between;
 /* answers */
 .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .answers button {
+  overflow-wrap: anywhere; line-height: 1.1;
   font: 800 1.25rem var(--font-display); letter-spacing: .01em;
   min-height: 64px; padding: 10px; border-radius: 18px; cursor: pointer;
   background: var(--surface); color: var(--ink); border: 2px solid var(--line);
@@ -147,10 +148,11 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
 }
 .tile:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
 .tile .food { font-size: 64px; height: 76px; }
-.tile .food svg { width: 70px; }
+.tile .food svg { width: 80px; }
 .tile .w { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; line-height: 1.1; }
 .tile .p { color: var(--muted); font-weight: 700; font-size: .9rem; }
 .tile .s { color: var(--muted); font-size: .8rem; }
+.group-title { grid-column: 1 / -1; margin: 10px 0 0; font-family: var(--font-display); font-size: 1.3rem; line-height: 1.1; color: var(--tomato); }
 .hint { color: var(--muted); font-weight: 700; margin: 0; text-align: center; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -184,7 +186,7 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
         <button class="speak" id="speak" aria-label="Ouvir a palavra em inglês" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>
         </button>
-        <p class="question">What food is this?</p>
+        <p class="question" id="ask">What food is this?</p>
         <div class="plate"><div class="food pop" id="food"></div></div>
         <div class="reveal" id="reveal"><span class="pt">Toque no nome em inglês</span></div>
       </div>
@@ -232,16 +234,6 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
       </g>
       <g fill="#ffffff" opacity=".35"><ellipse cx="36" cy="48.5" rx="2.5" ry="1.2"/><ellipse cx="68" cy="49.5" rx="2.5" ry="1.2"/><ellipse cx="61" cy="55.5" rx="2.5" ry="1.2"/></g>
     </svg>`,
-    mortadella: `<svg viewBox="0 0 120 110" aria-hidden="true">
-      <circle cx="60" cy="58" r="48" fill="#d9707b"/>
-      <circle cx="60" cy="58" r="43" fill="#f4a6ae"/>
-      <g fill="#fff4f2">
-        <circle cx="42" cy="44" r="5"/><circle cx="72" cy="38" r="4"/><circle cx="80" cy="62" r="5.5"/>
-        <circle cx="55" cy="70" r="4.5"/><circle cx="38" cy="72" r="3.5"/><circle cx="64" cy="54" r="3"/>
-        <circle cx="86" cy="44" r="3"/><circle cx="68" cy="84" r="3.5"/><circle cx="46" cy="58" r="2.5"/>
-      </g>
-      <g fill="#3a5a2a"><circle cx="58" cy="40" r="2.6"/><circle cx="74" cy="74" r="2.6"/><circle cx="34" cy="58" r="2.2"/></g>
-    </svg>`,
     papaya: `<svg viewBox="0 0 130 100" aria-hidden="true">
       <ellipse cx="65" cy="52" rx="60" ry="40" fill="#8db84a"/>
       <ellipse cx="65" cy="52" rx="55" ry="35" fill="#ffa040"/>
@@ -253,29 +245,119 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
         <circle cx="71" cy="55" r="3.6"/><circle cx="79" cy="50" r="3.6"/><circle cx="85" cy="54" r="3"/>
         <circle cx="58" cy="41" r="2.8"/><circle cx="78" cy="59" r="2.8"/>
       </g>
+    </svg>`,
+    ham: `<svg viewBox="0 0 130 100" aria-hidden="true">
+      <path d="M14 70c4-30 40-50 74-44 22 4 34 18 30 32-6 22-44 30-74 26-18-2-31-6-30-14z" fill="#e79aa3"/>
+      <path d="M20 66c6-24 38-40 66-35 18 3 28 14 25 25-5 17-37 24-62 21-15-2-30-4-29-11z" fill="#f7c3c8"/>
+      <path d="M24 52c10-22 44-34 70-26 14 4 22 12 20 20" fill="none" stroke="#e08a95" stroke-width="5" stroke-linecap="round"/>
+      <path d="M30 60c12-14 36-20 56-16" fill="none" stroke="#fbe0e2" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+    </svg>`,
+    juice: `<svg viewBox="0 0 100 120" aria-hidden="true">
+      <path d="M22 14h56l-7 96a6 6 0 0 1-6 6H35a6 6 0 0 1-6-6z" fill="#eef6f8" stroke="#b9cfd6" stroke-width="2.5"/>
+      <path d="M25 34h50l-5 74a4 4 0 0 1-4 4H34a4 4 0 0 1-4-4z" fill="#ffb21f"/>
+      <path d="M25 34h50l-.6 8H25.6z" fill="#ffd36a"/>
+      <rect x="31" y="44" width="6" height="56" rx="3" fill="#fff" opacity=".35"/>
+    </svg>`,
+    cake: `<svg viewBox="0 0 140 100" aria-hidden="true">
+      <rect x="8" y="78" width="124" height="12" rx="4" fill="#d9b98c"/>
+      <path d="M14 78V44c0-14 10-22 26-22h20c14 0 22 8 22 22v34z" fill="#f2c45a"/>
+      <path d="M14 44c0-14 10-22 26-22h20c14 0 22 8 22 22-8 4-16 2-22-2-8 6-18 6-26 0-6 4-14 5-20 2z" fill="#c98a2e"/>
+      <g fill="#f6d27a" stroke="#c98a2e" stroke-width="2">
+        <rect x="86" y="40" width="14" height="38" rx="2"/><rect x="102" y="44" width="14" height="34" rx="2"/><rect x="118" y="48" width="12" height="30" rx="2"/>
+      </g>
+      <g fill="#e8a83a" opacity=".6"><circle cx="34" cy="56" r="2"/><circle cx="52" cy="64" r="2"/><circle cx="66" cy="52" r="2"/><circle cx="40" cy="70" r="2"/></g>
+    </svg>`,
+    lemon: `<svg viewBox="0 0 130 100" aria-hidden="true">
+      <circle cx="52" cy="52" r="38" fill="#7cc243"/>
+      <circle cx="40" cy="40" r="9" fill="#a6db6e" opacity=".7"/>
+      <path d="M60 16c6-10 18-12 26-8-6 8-16 12-26 8z" fill="#3f8a2a"/>
+      <path d="M84 96a34 34 0 0 1 0-56z" fill="#5aa832" transform="rotate(30 84 68)"/>
+      <path d="M86 92a28 28 0 0 1 0-46z" fill="#d6f0a8" transform="rotate(30 84 68)"/>
+      <g stroke="#9fd16b" stroke-width="2" transform="rotate(30 84 68)"><path d="M86 69l-22-8"/><path d="M86 69l-24 8"/><path d="M86 69l-14-20"/><path d="M86 69l-14 20"/></g>
     </svg>`
   };
+  // Storefront drawing for places; the sign shows a symbol, never the word.
+  const place = (wall, roof, sym) => `<svg viewBox="0 0 140 120" aria-hidden="true">
+      <ellipse cx="70" cy="112" rx="64" ry="6" fill="#9cc7c9" opacity=".6"/>
+      <rect x="18" y="40" width="104" height="70" fill="${wall}"/>
+      <rect x="30" y="8" width="80" height="30" rx="8" fill="#fff" stroke="${roof}" stroke-width="4"/>
+      <text x="70" y="32" font-size="24" text-anchor="middle">${sym}</text>
+      <path d="M12 42h116l-6 16H18z" fill="${roof}"/>
+      <g fill="#fff">${[0,1,2,3,4,5].map(i => `<path d="M${14 + i * 19.3} 42h9.6l-1 16h-9z"/>`).join("")}</g>
+      <path d="M18 58q9.6 8 19.3 0q9.6 8 19.3 0q9.6 8 19.3 0q9.6 8 19.3 0q9.6 8 19.3 0q9.6 8 19.3 0" fill="${roof}"/>
+      <rect x="28" y="70" width="28" height="22" rx="3" fill="#bfe3f0" stroke="#6b4a3a" stroke-width="3"/>
+      <rect x="84" y="70" width="28" height="22" rx="3" fill="#bfe3f0" stroke="#6b4a3a" stroke-width="3"/>
+      <rect x="60" y="72" width="20" height="38" rx="2" fill="#8a4b33"/><circle cx="76" cy="92" r="1.8" fill="#ffd36a"/>
+    </svg>`;
+  // Meal drawing: time of day (sky + sun/moon) plus a typical dish.
+  const meal = (sky, sun, dish) => `<svg viewBox="0 0 120 120" aria-hidden="true">
+      <circle cx="60" cy="60" r="56" fill="${sky}"/>
+      <text x="30" y="44" font-size="28" text-anchor="middle">${sun}</text>
+      <text x="66" y="92" font-size="52" text-anchor="middle">${dish}</text>
+    </svg>`;
 
+  // cat = topic shown in study mode; group = which words can be mixed as wrong options.
   // pron = Portuguese-style pronunciation hint for kids.
   const FOODS = [
-    { en: "pasta",      pt: "macarrão",  pic: "🍝", pron: "PÁS-ta" },
-    { en: "beans",      pt: "feijão",    svg: "beans", pron: "BINS" },
-    { en: "chicken",    pt: "galinha / frango", pic: "🍗", pron: "TCHÍ-ken" },
-    { en: "rice",       pt: "arroz",     pic: "🍚", pron: "RÁIS" },
-    { en: "strawberry", pt: "morango",   pic: "🍓", pron: "STRÓ-bé-ri" },
-    { en: "orange",     pt: "laranja",   pic: "🍊", pron: "Ó-rindj" },
-    { en: "milk",       pt: "leite",     pic: "🥛", pron: "MÍLK" },
-    { en: "apple",      pt: "maçã",      pic: "🍎", pron: "É-pol" },
-    { en: "cheese",     pt: "queijo",    pic: "🧀", pron: "TCHÍIZ" },
-    { en: "mortadella", pt: "mortadela", svg: "mortadella", pron: "mór-ta-DÉ-la" },
-    { en: "banana",     pt: "banana",    pic: "🍌", pron: "ba-NÉ-na" },
-    { en: "pineapple",  pt: "abacaxi",   pic: "🍍", pron: "PÁI-né-pol" },
-    { en: "pear",       pt: "pera",      pic: "🍐", pron: "PÉR" },
-    { en: "papaya",     pt: "mamão",     svg: "papaya", pron: "pa-PÁI-a" }
+    // Food we eat every day
+    { cat: "food", en: "bread",        pt: "pão",       pic: "🍞", pron: "BRÉD" },
+    { cat: "food", en: "cheese",       pt: "queijo",    pic: "🧀", pron: "TCHÍIZ" },
+    { cat: "food", en: "ham",          pt: "presunto",  svg: "ham", pron: "RÉM" },
+    { cat: "food", en: "milk",         pt: "leite",     pic: "🥛", pron: "MÍLK" },
+    { cat: "food", en: "rice",         pt: "arroz",     pic: "🍚", pron: "RÁIS" },
+    { cat: "food", en: "beans",        pt: "feijão",    svg: "beans", pron: "BINS" },
+    { cat: "food", en: "meat",         pt: "carne",     pic: "🥩", pron: "MÍIT" },
+    { cat: "food", en: "chicken",      pt: "frango / galinha", pic: "🍗", pron: "TCHÍ-ken" },
+    { cat: "food", en: "pasta",        pt: "macarrão",  pic: "🍝", pron: "PÁS-ta" },
+    { cat: "food", en: "orange juice", pt: "suco de laranja", svg: "juice", pron: "Ó-rindj DJÚS" },
+    { cat: "food", en: "fish",         pt: "peixe",     pic: "🐟", pron: "FÍSH" },
+    { cat: "food", en: "orange cake",  pt: "bolo de laranja", svg: "cake", pron: "Ó-rindj KÊIK" },
+    { cat: "food", en: "coffee",       pt: "café (bebida)", pic: "☕", pron: "CÓ-fi" },
+    { cat: "food", en: "sandwich",     pt: "sanduíche", pic: "🥪", pron: "SÉN-uitch" },
+    { cat: "food", en: "salad",        pt: "salada",    pic: "🥗", pron: "SÉ-lad" },
+    { cat: "food", en: "cereal",       pt: "cereal",    pic: "🥣", pron: "SÍ-ri-al" },
+    { cat: "food", en: "ice cream",    pt: "sorvete",   pic: "🍨", pron: "ÁIS-crim" },
+    // Fruits
+    { cat: "fruit", en: "banana",      pt: "banana",    pic: "🍌", pron: "ba-NÉ-na" },
+    { cat: "fruit", en: "apple",       pt: "maçã",      pic: "🍎", pron: "É-pol" },
+    { cat: "fruit", en: "watermelon",  pt: "melancia",  pic: "🍉", pron: "UÓ-ter-mé-lon" },
+    { cat: "fruit", en: "strawberry",  pt: "morango",   pic: "🍓", pron: "STRÓ-bé-ri" },
+    { cat: "fruit", en: "orange",      pt: "laranja",   pic: "🍊", pron: "Ó-rindj" },
+    { cat: "fruit", en: "grapes",      pt: "uvas",      pic: "🍇", pron: "GRÊIPS" },
+    { cat: "fruit", en: "pineapple",   pt: "abacaxi",   pic: "🍍", pron: "PÁI-né-pol" },
+    { cat: "fruit", en: "lemon",       pt: "limão",     svg: "lemon", pron: "LÉ-mon" },
+    { cat: "fruit", en: "pear",        pt: "pera",      pic: "🍐", pron: "PÉR" },
+    { cat: "fruit", en: "papaya",      pt: "mamão",     svg: "papaya", pron: "pa-PÁI-a" },
+    // Vegetables
+    { cat: "veg", en: "lettuce",       pt: "alface",    pic: "🥬", pron: "LÉ-tiss" },
+    { cat: "veg", en: "broccoli",      pt: "brócolis",  pic: "🥦", pron: "BRÓ-co-li" },
+    { cat: "veg", en: "tomato",        pt: "tomate",    pic: "🍅", pron: "to-MÊI-tou" },
+    { cat: "veg", en: "cucumber",      pt: "pepino",    pic: "🥒", pron: "KIÚ-cam-ber" },
+    { cat: "veg", en: "carrot",        pt: "cenoura",   pic: "🥕", pron: "KÉ-rot" },
+    { cat: "veg", en: "potato",        pt: "batata",    pic: "🥔", pron: "po-TÊI-tou" },
+    { cat: "veg", en: "onion",         pt: "cebola",    pic: "🧅", pron: "Â-nion" },
+    { cat: "veg", en: "aubergine",     pt: "berinjela", pic: "🍆", pron: "Ô-ber-jin" },
+    // Meals of the day
+    { cat: "meal", en: "breakfast",    pt: "café da manhã", html: meal("#ffd9a8", "🌅", "🥣"), pron: "BRÉK-fast" },
+    { cat: "meal", en: "lunch",        pt: "almoço",    html: meal("#bfe6ff", "☀️", "🥪"), pron: "LÂNTCH" },
+    { cat: "meal", en: "dinner",       pt: "jantar",    html: meal("#2c3e6b", "🌙", "🍝"), pron: "DÍ-ner" },
+    { cat: "meal", en: "dessert",      pt: "sobremesa", html: meal("#f8d3e4", "⭐", "🍨"), pron: "di-ZÂRT" },
+    // Places to eat
+    { cat: "place", en: "café",        pt: "cafeteria", html: place("#e9a06b", "#c8442f", "☕"), pron: "ca-FÊI" },
+    { cat: "place", en: "restaurant",  pt: "restaurante", html: place("#c7714f", "#9b2f2f", "🍽️"), pron: "RÉS-to-rant" },
+    { cat: "place", en: "ice cream shop", pt: "sorveteria", html: place("#f0b3c4", "#d94f7a", "🍦"), pron: "ÁIS-crim SHÓP" },
+    { cat: "place", en: "bakery",      pt: "padaria",   html: place("#e2b77a", "#3f8a4a", "🥖"), pron: "BÊI-ke-ri" }
   ];
+  const CATS = {
+    food:  { title: "Food we eat every day", ask: "What food is this?",      group: "food", take: 3 },
+    fruit: { title: "Fruits",                ask: "What fruit is this?",     group: "food", take: 2 },
+    veg:   { title: "Vegetables",            ask: "What vegetable is this?", group: "food", take: 2 },
+    meal:  { title: "Meals of the day",      ask: "What meal is this?",      group: "meal", take: 1 },
+    place: { title: "Places to eat",         ask: "What place is this?",     group: "place", take: 2 }
+  };
 
   const $ = id => document.getElementById(id);
-  const picHTML = f => f.svg ? SVG[f.svg] : f.pic;
+  const picHTML = f => f.html || (f.svg ? SVG[f.svg] : f.pic);
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
   // ---- sound ----
@@ -311,11 +393,13 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
   }
 
   // ---- game ----
-  const ROUNDS = FOODS.length;
+  const ROUNDS = 10;
+  // A mixed round: a few words from every topic, then shuffled.
+  const buildMix = () => shuffle(Object.keys(CATS).flatMap(c => shuffle(FOODS.filter(f => f.cat === c)).slice(0, CATS[c].take)));
   let order = [], idx = 0, score = 0, streak = 0, missed = [], locked = false, current = null;
 
   function start() {
-    order = shuffle(FOODS); idx = 0; score = 0; streak = 0; missed = [];
+    order = buildMix(); idx = 0; score = 0; streak = 0; missed = [];
     $("done").hidden = true; $("play").hidden = false;
     showRound();
   }
@@ -334,7 +418,9 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
     $("speak").disabled = true;
     $("next").hidden = true;
 
-    const others = shuffle(FOODS.filter(f => f !== current)).slice(0, 3);
+    $("ask").textContent = CATS[current.cat].ask;
+    const grp = CATS[current.cat].group;
+    const others = shuffle(FOODS.filter(f => f !== current && CATS[f.cat].group === grp)).slice(0, 3);
     const opts = shuffle([current, ...others]);
     const box = $("answers"); box.innerHTML = "";
     opts.forEach(f => {
@@ -390,12 +476,17 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
 
   // ---- study ----
   const grid = $("grid");
-  FOODS.forEach(f => {
-    const t = document.createElement("button");
-    t.className = "tile"; t.type = "button";
-    t.innerHTML = `<span class="food">${picHTML(f)}</span><span class="w">${f.en}</span><span class="p">${f.pt}</span><span class="s">fala-se ${f.pron}</span>`;
-    t.addEventListener("click", () => say(f.en));
-    grid.appendChild(t);
+  Object.entries(CATS).forEach(([c, info]) => {
+    const h = document.createElement("h3");
+    h.className = "group-title"; h.textContent = info.title;
+    grid.appendChild(h);
+    FOODS.filter(f => f.cat === c).forEach(f => {
+      const t = document.createElement("button");
+      t.className = "tile"; t.type = "button";
+      t.innerHTML = `<span class="food">${picHTML(f)}</span><span class="w">${f.en}</span><span class="p">${f.pt}</span><span class="s">fala-se ${f.pron}</span>`;
+      t.addEventListener("click", () => say(f.en));
+      grid.appendChild(t);
+    });
   });
 
   function setMode(m) {
