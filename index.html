@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<!-- ARTIFACT-START -->
+<title>Lancheira em Inglês</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: one centered "lunch tray" column; the food card is the hero, answers sit below as big tappable chips. */
+:root {
+  --bg: #eaf4f1;          /* mint tray */
+  --surface: #ffffff;
+  --ink: #1f3330;
+  --muted: #5d7570;
+  --line: #cfe2dc;
+  --tomato: #e5483a;      /* accent */
+  --leaf: #23955a;        /* correct */
+  --leaf-soft: #d9f2e3;
+  --wrong-soft: #fde0dc;
+  --sun: #ffc23d;         /* stars, progress */
+  --plate: #fff7e6;
+  --font-display: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius: 22px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12211f; --surface: #1b2f2c; --ink: #eaf5f2; --muted: #9db8b2; --line: #2c4642;
+    --tomato: #ff6a5c; --leaf: #46c47f; --leaf-soft: #1d4231; --wrong-soft: #4a2420;
+    --sun: #ffcf5c; --plate: #26403b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12211f; --surface: #1b2f2c; --ink: #eaf5f2; --muted: #9db8b2; --line: #2c4642;
+  --tomato: #ff6a5c; --leaf: #46c47f; --leaf-soft: #1d4231; --wrong-soft: #4a2420;
+  --sun: #ffcf5c; --plate: #26403b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 32px;
+  -webkit-tap-highlight-color: transparent;
+}
+.wrap { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 8px; }
+.brand h1 { font-family: var(--font-display); font-weight: 800; font-size: 1.7rem; line-height: 1; margin: 0; letter-spacing: -0.01em; }
+.brand h1 .en { color: var(--tomato); }
+.tabs { display: flex; gap: 6px; background: var(--surface); border: 2px solid var(--line); border-radius: 999px; padding: 4px; }
+.tabs button {
+  font: 800 0.9rem var(--font-body); border: 0; background: transparent; color: var(--muted);
+  padding: 8px 14px; border-radius: 999px; cursor: pointer;
+}
+.tabs button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+/* status row */
+.status { display: flex; align-items: center; gap: 12px; }
+.bar { flex: 1; height: 14px; background: var(--surface); border: 2px solid var(--line); border-radius: 999px; overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--sun); border-radius: 999px; transition: width .35s ease; }
+.pill { font: 800 0.95rem var(--font-body); font-variant-numeric: tabular-nums; background: var(--surface); border: 2px solid var(--line); border-radius: 999px; padding: 4px 12px; white-space: nowrap; }
+.pill.streak { color: var(--tomato); }
+
+/* food card */
+.card {
+  background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius);
+  padding: 22px 18px 18px; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  position: relative;
+}
+.question { font-weight: 800; color: var(--muted); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.06em; margin: 0; }
+.plate {
+  width: min(220px, 62vw); aspect-ratio: 1; max-width: 100%; border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, var(--plate) 0 58%, var(--surface) 59% 62%, var(--plate) 63% 100%);
+  border: 3px solid var(--line);
+  display: grid; place-items: center; position: relative;
+}
+.food { font-size: min(118px, 32vw); line-height: 1; display: grid; place-items: center; user-select: none; }
+.food svg { width: min(130px, 36vw); height: auto; }
+.pop { animation: pop .45s cubic-bezier(.3,1.6,.5,1); }
+@keyframes pop { from { transform: scale(.4) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.reveal { min-height: 3.4em; text-align: center; display: flex; flex-direction: column; gap: 2px; align-items: center; }
+.reveal .word { font-family: var(--font-display); font-weight: 800; font-size: 2rem; line-height: 1.05; }
+.reveal .pt { color: var(--muted); font-weight: 700; }
+.reveal .say { font-size: 0.9rem; color: var(--muted); }
+.reveal .say b { color: var(--ink); }
+.speak {
+  position: absolute; top: 14px; right: 14px; width: 46px; height: 46px; border-radius: 50%;
+  border: 2px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer;
+  display: grid; place-items: center;
+}
+.speak:disabled { opacity: .35; cursor: default; }
+.speak svg { width: 22px; height: 22px; }
+
+/* answers */
+.answers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.answers button {
+  font: 800 1.25rem var(--font-display); letter-spacing: .01em;
+  min-height: 64px; padding: 10px; border-radius: 18px; cursor: pointer;
+  background: var(--surface); color: var(--ink); border: 2px solid var(--line);
+  box-shadow: 0 4px 0 var(--line); transition: transform .08s ease, box-shadow .08s ease;
+}
+.answers button:hover:not(:disabled) { border-color: var(--ink); }
+.answers button:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+.answers button:disabled { cursor: default; }
+.answers button.right { background: var(--leaf-soft); border-color: var(--leaf); box-shadow: 0 4px 0 var(--leaf); color: var(--ink); }
+.answers button.wrong { background: var(--wrong-soft); border-color: var(--tomato); box-shadow: 0 4px 0 var(--tomato); animation: shake .4s; }
+.answers button.dim { opacity: .45; }
+@keyframes shake { 0%,100%{transform:none} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+
+.next {
+  font: 800 1.15rem var(--font-body); border: 0; border-radius: 18px; padding: 16px; cursor: pointer;
+  background: var(--tomato); color: #fff; box-shadow: 0 4px 0 color-mix(in srgb, var(--tomato) 60%, #000);
+}
+.next:active { transform: translateY(3px); box-shadow: 0 1px 0 color-mix(in srgb, var(--tomato) 60%, #000); }
+
+button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
+
+/* results */
+.result { text-align: center; }
+.stars { font-size: 3rem; letter-spacing: 6px; color: var(--sun); line-height: 1; }
+.stars .off { color: var(--line); }
+.result h2 { font-family: var(--font-display); font-size: 2rem; margin: 6px 0 0; line-height: 1.1; text-wrap: balance; }
+.result p { margin: 4px 0 0; color: var(--muted); font-weight: 700; }
+.missed { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; border: 2px solid var(--line); border-radius: 999px; padding: 4px 12px 4px 6px; font-weight: 800; background: var(--bg); cursor: pointer; color: var(--ink); font-family: var(--font-body); font-size: .95rem; }
+.chip .mini { font-size: 1.4rem; line-height: 1; display: inline-grid; width: 28px; height: 28px; place-items: center; }
+.chip .mini svg { width: 26px; height: 26px; }
+
+/* study grid */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.tile {
+  background: var(--surface); border: 2px solid var(--line); border-radius: 18px; padding: 14px 10px 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--ink);
+  font-family: var(--font-body); box-shadow: 0 4px 0 var(--line);
+}
+.tile:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+.tile .food { font-size: 64px; height: 76px; }
+.tile .food svg { width: 70px; }
+.tile .w { font-family: var(--font-display); font-weight: 800; font-size: 1.35rem; line-height: 1.1; }
+.tile .p { color: var(--muted); font-weight: 700; font-size: .9rem; }
+.tile .s { color: var(--muted); font-size: .8rem; }
+.hint { color: var(--muted); font-weight: 700; margin: 0; text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pop, .answers button.wrong { animation: none; }
+  .bar > i { transition: none; }
+}
+@media (max-width: 380px) {
+  .answers button { font-size: 1.1rem; }
+  .brand h1 { font-size: 1.45rem; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><h1>Lancheira <span class="en">in English</span></h1></div>
+    <nav class="tabs" aria-label="Modo">
+      <button id="tab-play" aria-pressed="true">Jogar</button>
+      <button id="tab-study" aria-pressed="false">Estudar</button>
+    </nav>
+  </header>
+
+  <section id="play">
+    <div class="wrap" style="gap:16px">
+      <div class="status">
+        <div class="bar" aria-hidden="true"><i id="bar"></i></div>
+        <span class="pill" id="count">1/14</span>
+        <span class="pill" id="score" title="Acertos">✔ 0</span>
+      </div>
+
+      <div class="card" id="card">
+        <button class="speak" id="speak" aria-label="Ouvir a palavra em inglês" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+        </button>
+        <p class="question">What food is this?</p>
+        <div class="plate"><div class="food pop" id="food"></div></div>
+        <div class="reveal" id="reveal"><span class="pt">Toque no nome em inglês</span></div>
+      </div>
+
+      <div class="answers" id="answers"></div>
+      <button class="next" id="next" hidden>Próxima →</button>
+    </div>
+  </section>
+
+  <section id="done" hidden>
+    <div class="card result">
+      <div class="stars" id="stars"></div>
+      <h2 id="done-title">Muito bem!</h2>
+      <p id="done-text"></p>
+      <div class="missed" id="missed"></div>
+    </div>
+    <div style="height:16px"></div>
+    <button class="next" id="again" style="width:100%">Jogar de novo</button>
+  </section>
+
+  <section id="study" hidden>
+    <div class="wrap" style="gap:14px">
+      <p class="hint">Toque em uma comida para ouvir o nome em inglês.</p>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  // Custom drawings for foods without a reliable emoji.
+  const SVG = {
+    beans: `<svg viewBox="0 0 120 100" aria-hidden="true">
+      <ellipse cx="60" cy="52" rx="54" ry="16" fill="#c9824a"/>
+      <path d="M6 52c0 26 24 42 54 42s54-16 54-42z" fill="#e8a565"/>
+      <ellipse cx="60" cy="52" rx="48" ry="12" fill="#5a2d1a"/>
+      <g fill="#7a3b22" stroke="#3e1c10" stroke-width="1.5">
+        <ellipse cx="38" cy="50" rx="7" ry="4.2" transform="rotate(-20 38 50)"/>
+        <ellipse cx="54" cy="47" rx="7" ry="4.2" transform="rotate(15 54 47)"/>
+        <ellipse cx="70" cy="51" rx="7" ry="4.2" transform="rotate(-8 70 51)"/>
+        <ellipse cx="84" cy="48" rx="7" ry="4.2" transform="rotate(25 84 48)"/>
+        <ellipse cx="47" cy="56" rx="7" ry="4.2" transform="rotate(10 47 56)"/>
+        <ellipse cx="63" cy="57" rx="7" ry="4.2" transform="rotate(-25 63 57)"/>
+        <ellipse cx="78" cy="56" rx="7" ry="4.2" transform="rotate(5 78 56)"/>
+      </g>
+      <g fill="#ffffff" opacity=".35"><ellipse cx="36" cy="48.5" rx="2.5" ry="1.2"/><ellipse cx="68" cy="49.5" rx="2.5" ry="1.2"/><ellipse cx="61" cy="55.5" rx="2.5" ry="1.2"/></g>
+    </svg>`,
+    mortadella: `<svg viewBox="0 0 120 110" aria-hidden="true">
+      <circle cx="60" cy="58" r="48" fill="#d9707b"/>
+      <circle cx="60" cy="58" r="43" fill="#f4a6ae"/>
+      <g fill="#fff4f2">
+        <circle cx="42" cy="44" r="5"/><circle cx="72" cy="38" r="4"/><circle cx="80" cy="62" r="5.5"/>
+        <circle cx="55" cy="70" r="4.5"/><circle cx="38" cy="72" r="3.5"/><circle cx="64" cy="54" r="3"/>
+        <circle cx="86" cy="44" r="3"/><circle cx="68" cy="84" r="3.5"/><circle cx="46" cy="58" r="2.5"/>
+      </g>
+      <g fill="#3a5a2a"><circle cx="58" cy="40" r="2.6"/><circle cx="74" cy="74" r="2.6"/><circle cx="34" cy="58" r="2.2"/></g>
+    </svg>`,
+    papaya: `<svg viewBox="0 0 130 100" aria-hidden="true">
+      <ellipse cx="65" cy="52" rx="60" ry="40" fill="#8db84a"/>
+      <ellipse cx="65" cy="52" rx="55" ry="35" fill="#ffa040"/>
+      <ellipse cx="65" cy="52" rx="44" ry="26" fill="#ff8a3a"/>
+      <ellipse cx="65" cy="52" rx="30" ry="14" fill="#ffd27a"/>
+      <g fill="#1e1a17">
+        <circle cx="45" cy="50" r="3.6"/><circle cx="53" cy="45" r="3.6"/><circle cx="53" cy="56" r="3.6"/>
+        <circle cx="62" cy="49" r="3.6"/><circle cx="62" cy="58" r="3.4"/><circle cx="70" cy="45" r="3.6"/>
+        <circle cx="71" cy="55" r="3.6"/><circle cx="79" cy="50" r="3.6"/><circle cx="85" cy="54" r="3"/>
+        <circle cx="58" cy="41" r="2.8"/><circle cx="78" cy="59" r="2.8"/>
+      </g>
+    </svg>`
+  };
+
+  // pron = Portuguese-style pronunciation hint for kids.
+  const FOODS = [
+    { en: "pasta",      pt: "macarrão",  pic: "🍝", pron: "PÁS-ta" },
+    { en: "beans",      pt: "feijão",    svg: "beans", pron: "BINS" },
+    { en: "chicken",    pt: "galinha / frango", pic: "🍗", pron: "TCHÍ-ken" },
+    { en: "rice",       pt: "arroz",     pic: "🍚", pron: "RÁIS" },
+    { en: "strawberry", pt: "morango",   pic: "🍓", pron: "STRÓ-bé-ri" },
+    { en: "orange",     pt: "laranja",   pic: "🍊", pron: "Ó-rindj" },
+    { en: "milk",       pt: "leite",     pic: "🥛", pron: "MÍLK" },
+    { en: "apple",      pt: "maçã",      pic: "🍎", pron: "É-pol" },
+    { en: "cheese",     pt: "queijo",    pic: "🧀", pron: "TCHÍIZ" },
+    { en: "mortadella", pt: "mortadela", svg: "mortadella", pron: "mór-ta-DÉ-la" },
+    { en: "banana",     pt: "banana",    pic: "🍌", pron: "ba-NÉ-na" },
+    { en: "pineapple",  pt: "abacaxi",   pic: "🍍", pron: "PÁI-né-pol" },
+    { en: "pear",       pt: "pera",      pic: "🍐", pron: "PÉR" },
+    { en: "papaya",     pt: "mamão",     svg: "papaya", pron: "pa-PÁI-a" }
+  ];
+
+  const $ = id => document.getElementById(id);
+  const picHTML = f => f.svg ? SVG[f.svg] : f.pic;
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+  // ---- sound ----
+  let voice = null;
+  function pickVoice() {
+    try {
+      const vs = speechSynthesis.getVoices();
+      voice = vs.find(v => /en[-_]US/i.test(v.lang) && /female|samantha|google/i.test(v.name))
+           || vs.find(v => /en[-_]US/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
+    } catch (e) {}
+  }
+  try { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {}
+  function say(text) {
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US"; u.rate = 0.8; if (voice) u.voice = voice;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  let ac = null;
+  function tone(freqs) {
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      let t = ac.currentTime;
+      freqs.forEach(f => {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = "triangle"; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.18, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+        o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 0.18); t += 0.11;
+      });
+    } catch (e) {}
+  }
+
+  // ---- game ----
+  const ROUNDS = FOODS.length;
+  let order = [], idx = 0, score = 0, streak = 0, missed = [], locked = false, current = null;
+
+  function start() {
+    order = shuffle(FOODS); idx = 0; score = 0; streak = 0; missed = [];
+    $("done").hidden = true; $("play").hidden = false;
+    showRound();
+  }
+
+  function showRound() {
+    current = order[idx]; locked = false;
+    $("count").textContent = `${idx + 1}/${ROUNDS}`;
+    $("score").textContent = `✔ ${score}`;
+    $("bar").style.width = `${(idx / ROUNDS) * 100}%`;
+    const food = $("food");
+    food.innerHTML = picHTML(current);
+    food.setAttribute("role", "img");
+    food.setAttribute("aria-label", "comida misteriosa");
+    food.classList.remove("pop"); void food.offsetWidth; food.classList.add("pop");
+    $("reveal").innerHTML = `<span class="pt">Toque no nome em inglês</span>`;
+    $("speak").disabled = true;
+    $("next").hidden = true;
+
+    const others = shuffle(FOODS.filter(f => f !== current)).slice(0, 3);
+    const opts = shuffle([current, ...others]);
+    const box = $("answers"); box.innerHTML = "";
+    opts.forEach(f => {
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = f.en; b.dataset.en = f.en;
+      b.addEventListener("click", () => answer(b, f));
+      box.appendChild(b);
+    });
+  }
+
+  function answer(btn, f) {
+    if (locked) return; locked = true;
+    const ok = f === current;
+    [...$("answers").children].forEach(b => {
+      b.disabled = true;
+      if (b.dataset.en === current.en) b.classList.add("right");
+      else if (b !== btn) b.classList.add("dim");
+    });
+    if (ok) { score++; streak++; tone([660, 880, 1175]); }
+    else { btn.classList.add("wrong"); streak = 0; missed.push(current); tone([300, 220]); }
+    $("score").textContent = `✔ ${score}`;
+    const cheer = ok ? (streak >= 3 ? `Incrível! ${streak} seguidas!` : "Acertou!") : "Quase! A resposta é:";
+    $("reveal").innerHTML = `<span class="pt">${cheer}</span><span class="word">${current.en}</span><span class="say">${current.pt} · fala-se <b>${current.pron}</b></span>`;
+    $("speak").disabled = false;
+    setTimeout(() => say(current.en), ok ? 350 : 500);
+    $("bar").style.width = `${((idx + 1) / ROUNDS) * 100}%`;
+    $("next").textContent = idx + 1 < ROUNDS ? "Próxima →" : "Ver resultado";
+    $("next").hidden = false;
+    $("next").focus({ preventScroll: true });
+  }
+
+  function finish() {
+    $("play").hidden = true; $("done").hidden = false;
+    const pct = score / ROUNDS;
+    const n = pct === 1 ? 3 : pct >= 0.7 ? 2 : pct >= 0.4 ? 1 : 0;
+    $("stars").innerHTML = [0, 1, 2].map(i => `<span class="${i < n ? "" : "off"}">★</span>`).join("");
+    $("done-title").textContent = n === 3 ? "Perfect! Você acertou tudo!" : n === 2 ? "Great job!" : n === 1 ? "Good! Vamos treinar mais?" : "Keep trying! Você consegue!";
+    $("done-text").textContent = `Você acertou ${score} de ${ROUNDS}.` + (missed.length ? " Toque para ouvir as que faltaram:" : "");
+    const m = $("missed"); m.innerHTML = "";
+    missed.forEach(f => {
+      const c = document.createElement("button");
+      c.className = "chip"; c.type = "button";
+      c.innerHTML = `<span class="mini">${picHTML(f)}</span>${f.en}`;
+      c.addEventListener("click", () => say(f.en));
+      m.appendChild(c);
+    });
+    if (n >= 2) tone([523, 659, 784, 1047]);
+  }
+
+  $("next").addEventListener("click", () => { idx++; idx < ROUNDS ? showRound() : finish(); });
+  $("again").addEventListener("click", start);
+  $("speak").addEventListener("click", () => current && say(current.en));
+
+  // ---- study ----
+  const grid = $("grid");
+  FOODS.forEach(f => {
+    const t = document.createElement("button");
+    t.className = "tile"; t.type = "button";
+    t.innerHTML = `<span class="food">${picHTML(f)}</span><span class="w">${f.en}</span><span class="p">${f.pt}</span><span class="s">fala-se ${f.pron}</span>`;
+    t.addEventListener("click", () => say(f.en));
+    grid.appendChild(t);
+  });
+
+  function setMode(m) {
+    const play = m === "play";
+    $("tab-play").setAttribute("aria-pressed", play);
+    $("tab-study").setAttribute("aria-pressed", !play);
+    $("study").hidden = play;
+    if (play) { $("play").hidden = idx >= ROUNDS; $("done").hidden = idx < ROUNDS; }
+    else { $("play").hidden = true; $("done").hidden = true; }
+  }
+  $("tab-play").addEventListener("click", () => setMode("play"));
+  $("tab-study").addEventListener("click", () => setMode("study"));
+
+  start();
+})();
+</script>
+<!-- ARTIFACT-END -->
+</body>
+</html>
