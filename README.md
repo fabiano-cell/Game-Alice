@@ -8,6 +8,7 @@ Atividades:
 - **Complete**: 8 palavras curtas (até 6 letras) com 1 ou 2 letras faltando. A criança toca nas letras certas para completar.
 - **Ligar**: 5 imagens e 5 palavras embaralhadas. Toque na imagem e depois no nome; quando acerta, aparece uma linha ligando os dois.
 - **Caça-palavras**: 5 imagens e um quadro de 8x8 letras. As palavras ficam na horizontal ou na vertical. Arraste o dedo sobre a palavra, ou toque na primeira e na última letra.
+- **Prova**: 12 questões misturadas (6 de Quiz, 3 de Complete, 2 de Ligar com 3 pares e 1 Caça-palavras pequeno), sem repetir palavras. Cada questão vale 1 ponto; no Complete e no Ligar o ponto só vale se não houver nenhum erro. No final aparece a nota de 0 a 10, a lista de questões certas e erradas e as palavras para treinar.
 - **Estudar**: todas as palavras separadas por tema, com o nome em inglês e em português. Toque para ouvir.
 
 Temas (seguem o livro "I am hungry"): Food we eat every day, Fruits, Vegetables, Meals of the day e Places to eat.

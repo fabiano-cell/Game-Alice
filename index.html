@@ -220,6 +220,23 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
 .win h2 { font-family: var(--font-display); font-size: 1.8rem; margin: 0; line-height: 1.1; text-wrap: balance; }
 .win p { margin: 0; color: var(--muted); font-weight: 700; }
 
+/* exam */
+.intro { text-align: center; }
+.intro h2 { font-family: var(--font-display); font-size: 2rem; margin: 0; line-height: 1.1; }
+.intro p { margin: 0; color: var(--muted); font-weight: 700; }
+.intro ul { list-style: none; padding: 0; margin: 6px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.intro li { border: 2px solid var(--line); border-radius: 999px; padding: 4px 12px; font-weight: 800; background: var(--bg); }
+.intro li b { color: var(--tomato); font-variant-numeric: tabular-nums; }
+.x-label { margin: 0; font-weight: 800; color: var(--tomato); font-size: .95rem; text-align: center; }
+.grade { font-family: var(--font-display); font-weight: 800; font-size: 4rem; line-height: 1; color: var(--tomato); font-variant-numeric: tabular-nums; }
+.review { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; gap: 6px; text-align: left; width: 100%; }
+.review li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 12px; background: var(--bg); font-size: .95rem; min-width: 0; }
+.review li span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.review .mark { font-weight: 800; width: 1.2em; flex: none; text-align: center; }
+.review li.ok .mark { color: var(--leaf); }
+.review li.no { background: var(--wrong-soft); }
+.review li.no .mark { color: var(--tomato); }
+
 @media (prefers-reduced-motion: reduce) {
   .pop, .answers button.wrong, .letters button.wrong, .mcard.wrong { animation: none; }
   .bar > i { transition: none; }
@@ -238,6 +255,7 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
       <button type="button" data-mode="complete" aria-pressed="false">Complete</button>
       <button type="button" data-mode="match" aria-pressed="false">Ligar</button>
       <button type="button" data-mode="search" aria-pressed="false">Caça-palavras</button>
+      <button type="button" data-mode="exam" aria-pressed="false">Prova</button>
       <button type="button" data-mode="study" aria-pressed="false">Estudar</button>
     </nav>
   </header>
@@ -312,6 +330,28 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
       <div class="ws" id="s-grid"></div>
       <div class="card win" id="s-win" hidden></div>
     </div>
+  </section>
+
+  <section id="exam" hidden>
+    <div class="card intro" id="x-intro">
+      <h2>Prova</h2>
+      <p>12 questões misturadas. Responda com calma: cada questão vale 1 ponto e no final aparece a sua nota de 0 a 10.</p>
+      <ul>
+        <li><b>6</b> Quiz</li><li><b>3</b> Complete</li><li><b>2</b> Ligar</li><li><b>1</b> Caça-palavras</li>
+      </ul>
+      <p style="font-size:.9rem">No Complete e no Ligar, só ganha o ponto quem acertar sem errar nenhuma vez.</p>
+      <button class="next" id="x-begin" type="button" style="width:100%">Começar a prova</button>
+    </div>
+    <div class="wrap" id="x-run" style="gap:14px" hidden>
+      <div class="status">
+        <div class="bar" aria-hidden="true"><i id="x-bar"></i></div>
+        <span class="pill" id="x-count">1/12</span>
+      </div>
+      <p class="x-label" id="x-label"></p>
+      <div class="wrap" id="x-body" style="gap:16px; width:100%"></div>
+      <button class="next" id="x-next" type="button" hidden>Próxima questão →</button>
+    </div>
+    <div id="x-done" hidden></div>
   </section>
 
   <section id="study" hidden>
@@ -691,8 +731,16 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
   // ---- match picture to word ----
   const M_N = 5;
   let ms = null;
+  // Meal and place pictures show foods (dinner = pasta, café = coffee), so a matching set
+  // uses either only foods, or only meals and places, never both.
+  function pickMatchSet(n, exclude = new Set()) {
+    const foods = FOODS.filter(f => CATS[f.cat].group === "food" && !exclude.has(f.en));
+    const other = FOODS.filter(f => CATS[f.cat].group !== "food" && !exclude.has(f.en));
+    const pool = Math.random() < 0.25 && other.length >= n ? other : foods;
+    return shuffle(pool).slice(0, n);
+  }
   function mStart() {
-    const items = shuffle(FOODS).slice(0, M_N);
+    const items = pickMatchSet(M_N);
     ms = { items, sel: null, pairs: [], errors: 0 };
     const board = $("m-board");
     board.querySelectorAll(".mcard").forEach(n => n.remove());
@@ -842,17 +890,297 @@ button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
   window.addEventListener("pointerup", sUp);
   window.addEventListener("pointercancel", sUp);
 
+  // ---- exam (prova): 12 mixed questions, mostly quiz ----
+  const X_PLAN = [
+    ...Array(6).fill("quiz"), ...Array(3).fill("complete"), ...Array(2).fill("match"), "search"
+  ];
+  const X_LABEL = { quiz: "Quiz", complete: "Complete", match: "Ligar", search: "Caça-palavras" };
+  const X_SEARCH = 6;
+  let xs = null;
+  const speakBtn = id => `<button class="speak" id="${id}" type="button" aria-label="Ouvir a palavra em inglês"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></svg></button>`;
+
+  function xIntro() {
+    xs = null;
+    $("x-run").hidden = true; $("x-done").hidden = true; $("x-intro").hidden = false;
+  }
+
+  // Picks words for every question without repeating a word in the same exam.
+  function xBuild() {
+    const used = new Set();
+    const take = (list, n) => { const out = shuffle(list.filter(f => !used.has(f.en))).slice(0, n); out.forEach(f => used.add(f.en)); return out; };
+    const quizCats = ["food", "food", "fruit", "veg", "meal", "place"];
+    const qs = [];
+    quizCats.forEach(c => qs.push({ type: "quiz", items: take(FOODS.filter(f => f.cat === c), 1) }));
+    for (let i = 0; i < 3; i++) qs.push({ type: "complete", items: take(SIMPLE, 1) });
+    for (let i = 0; i < 2; i++) { const set = pickMatchSet(3, used); set.forEach(f => used.add(f.en)); qs.push({ type: "match", items: set }); }
+    qs.push({ type: "search", items: take(FOODS.filter(f => /^[a-z]+$/.test(f.en) && f.en.length >= 3 && f.en.length <= X_SEARCH), 3) });
+    // Mix the order, but keep the word search away from the very first question.
+    let order;
+    do { order = shuffle(qs); } while (order[0].type === "search");
+    return order;
+  }
+
+  function xStart() {
+    xs = { qs: xBuild(), idx: 0, results: [] };
+    $("x-intro").hidden = true; $("x-done").hidden = true; $("x-run").hidden = false;
+    xShow();
+  }
+
+  function xShow() {
+    const q = xs.qs[xs.idx], N = xs.qs.length;
+    $("x-count").textContent = `${xs.idx + 1}/${N}`;
+    $("x-bar").style.width = `${(xs.idx / N) * 100}%`;
+    $("x-label").textContent = `Questão ${xs.idx + 1} · ${X_LABEL[q.type]}`;
+    $("x-next").hidden = true;
+    xs.answered = false;
+    ({ quiz: xQuiz, complete: xComplete, match: xMatch, search: xSearch })[q.type](q, $("x-body"));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function xAnswer(ok, feedback) {
+    if (xs.answered) return;
+    xs.answered = true;
+    xs.results.push({ q: xs.qs[xs.idx], ok });
+    $("x-bar").style.width = `${((xs.idx + 1) / xs.qs.length) * 100}%`;
+    const fb = $("x-fb");
+    if (fb) fb.innerHTML = feedback;
+    $("x-next").textContent = xs.idx + 1 < xs.qs.length ? "Próxima questão →" : "Ver minha nota";
+    $("x-next").hidden = false;
+  }
+
+  function xQuiz(q, body) {
+    const f = q.items[0];
+    const grp = CATS[f.cat].group;
+    const opts = shuffle([f, ...shuffle(FOODS.filter(o => o !== f && CATS[o.cat].group === grp)).slice(0, 3)]);
+    body.innerHTML = `<div class="card">${speakBtn("x-speak")}<p class="question">${CATS[f.cat].ask}</p>
+      <div class="plate"><div class="food pop">${picHTML(f)}</div></div>
+      <div class="reveal" id="x-fb"><span class="pt">Toque no nome em inglês</span></div></div>
+      <div class="answers" id="x-answers"></div>`;
+    $("x-speak").disabled = true;
+    $("x-speak").addEventListener("click", () => say(f.en));
+    opts.forEach(o => {
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = o.en;
+      b.addEventListener("click", () => {
+        if (xs.answered) return;
+        const ok = o === f;
+        [...$("x-answers").children].forEach(n => {
+          n.disabled = true;
+          if (n.textContent === f.en) n.classList.add("right"); else if (n !== b) n.classList.add("dim");
+        });
+        if (!ok) b.classList.add("wrong");
+        tone(ok ? [660, 880, 1175] : [300, 220]);
+        $("x-speak").disabled = false;
+        setTimeout(() => say(f.en), 350);
+        xAnswer(ok, `<span class="pt">${ok ? "Acertou!" : "A resposta é:"}</span><span class="word">${f.en}</span><span class="say">${f.pt} · fala-se <b>${f.pron}</b></span>`);
+      });
+      $("x-answers").appendChild(b);
+    });
+  }
+
+  function xComplete(q, body) {
+    const f = q.items[0], w = f.en;
+    const blanks = shuffle([...w].map((_, i) => i)).slice(0, w.length <= 4 ? 1 : 2).sort((a, b) => a - b);
+    let filled = 0, errors = 0;
+    body.innerHTML = `<div class="card">${speakBtn("x-speak")}<p class="question">Complete the word</p>
+      <div class="plate"><div class="food pop">${picHTML(f)}</div></div>
+      <div class="slots" id="x-slots">${[...w].map((ch, i) => blanks.includes(i) ? `<span class="slot blank" data-i="${i}"></span>` : `<span class="slot">${ch}</span>`).join("")}</div>
+      <div class="reveal" id="x-fb" style="min-height:2.6em"><span class="pt">${f.pt}</span></div></div>
+      <div class="letters" id="x-letters"></div>`;
+    $("x-speak").addEventListener("click", () => say(w));
+    const mark = () => $("x-slots").querySelectorAll(".slot.blank").forEach(s => s.classList.toggle("now", +s.dataset.i === blanks[filled]));
+    const need = blanks.map(i => w[i]);
+    const extra = shuffle([...ABC].filter(ch => !w.includes(ch))).slice(0, 5 - need.length);
+    shuffle([...need, ...extra]).forEach(ch => {
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = ch;
+      b.addEventListener("click", () => {
+        if (xs.answered) return;
+        const p = blanks[filled];
+        if (ch === w[p]) {
+          const s = $("x-slots").querySelector(`.slot[data-i="${p}"]`);
+          s.textContent = ch; s.classList.remove("blank", "now"); s.classList.add("filled");
+          b.classList.add("used"); filled++; tone([700]);
+          if (filled === blanks.length) {
+            tone([660, 880, 1175]); setTimeout(() => say(w), 300);
+            [...$("x-letters").children].forEach(n => n.disabled = true);
+            xAnswer(errors === 0, `<span class="pt">${errors === 0 ? "Perfeito!" : `Completou, mas errou ${errors} ${errors === 1 ? "letra" : "letras"}.`} ${f.pt}</span><span class="say">fala-se <b>${f.pron}</b></span>`);
+          } else mark();
+        } else {
+          errors++; tone([300, 220]);
+          b.classList.remove("wrong"); void b.offsetWidth; b.classList.add("wrong");
+          setTimeout(() => b.classList.remove("wrong"), 600);
+        }
+      });
+      $("x-letters").appendChild(b);
+    });
+    mark();
+  }
+
+  function xMatch(q, body) {
+    const items = q.items;
+    let sel = null, errors = 0;
+    const pairs = [];
+    body.innerHTML = `<div class="card" style="align-items:stretch"><p class="question" style="text-align:center">Match the picture to the word</p>
+      <div class="match" id="x-board"><svg class="lines" id="x-lines" aria-hidden="true"></svg></div>
+      <div class="reveal" id="x-fb" style="min-height:1.6em"><span class="pt">Toque na imagem e depois no nome.</span></div></div>`;
+    const board = $("x-board");
+    const draw = () => {
+      if (!board.isConnected) return;
+      const box = board.getBoundingClientRect();
+      $("x-lines").innerHTML = pairs.map(({ pic, word }) => {
+        const a = pic.getBoundingClientRect(), b = word.getBoundingClientRect();
+        const x1 = a.right - box.left, y1 = a.top + a.height / 2 - box.top, x2 = b.left - box.left, y2 = b.top + b.height / 2 - box.top;
+        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(--leaf)" stroke-width="5" stroke-linecap="round"/><circle cx="${x1}" cy="${y1}" r="6" fill="var(--leaf)"/><circle cx="${x2}" cy="${y2}" r="6" fill="var(--leaf)"/>`;
+      }).join("");
+    };
+    xs.redraw = draw;
+    const tap = (el, f, side) => {
+      if (xs.answered || el.classList.contains("done")) return;
+      if (side === "word") say(f.en);
+      if (!sel || sel.side === side) {
+        if (sel) sel.el.classList.remove("sel");
+        sel = { el, f, side }; el.classList.add("sel"); return;
+      }
+      const s = sel; s.el.classList.remove("sel"); sel = null;
+      if (s.f === f) {
+        el.classList.add("done"); s.el.classList.add("done");
+        pairs.push(side === "pic" ? { pic: el, word: s.el } : { pic: s.el, word: el });
+        tone([660, 880]); draw();
+        if (pairs.length === items.length) xAnswer(errors === 0, `<span class="pt">${errors === 0 ? "Perfeito! Ligou tudo certo." : `Ligou tudo, mas errou ${errors} ${errors === 1 ? "vez" : "vezes"}.`}</span>`);
+      } else {
+        errors++; tone([300, 220]);
+        [el, s.el].forEach(n => { n.classList.remove("wrong"); void n.offsetWidth; n.classList.add("wrong"); setTimeout(() => n.classList.remove("wrong"), 600); });
+      }
+    };
+    const mk = (f, side, row) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = `mcard ${side === "pic" ? "pic" : "word"}`;
+      b.style.gridColumn = side === "pic" ? 1 : 2; b.style.gridRow = row + 1;
+      b.innerHTML = side === "pic" ? `<span class="food">${picHTML(f)}</span>` : f.en;
+      b.addEventListener("click", () => tap(b, f, side));
+      board.appendChild(b);
+    };
+    shuffle(items).forEach((f, i) => mk(f, "pic", i));
+    shuffle(items).forEach((f, i) => mk(f, "word", i));
+  }
+
+  function xSearch(q, body) {
+    const N = X_SEARCH;
+    let placed, grid;
+    // Retry until all three words fit (they are short, so this is quick).
+    for (let attempt = 0; attempt < 50; attempt++) {
+      grid = Array.from({ length: N }, () => Array(N).fill(""));
+      placed = [];
+      for (const f of q.items) {
+        const w = f.en;
+        for (let t = 0; t < 200; t++) {
+          const down = Math.random() < 0.5;
+          const r = Math.floor(Math.random() * (down ? N - w.length + 1 : N));
+          const c = Math.floor(Math.random() * (down ? N : N - w.length + 1));
+          const cells = [...w].map((_, k) => down ? [r + k, c] : [r, c + k]);
+          if (cells.every(([y, x], k) => grid[y][x] === "" || grid[y][x] === w[k])) {
+            cells.forEach(([y, x], k) => grid[y][x] = w[k]);
+            placed.push({ f, cells, found: false }); break;
+          }
+        }
+      }
+      if (placed.length === q.items.length) break;
+    }
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (!grid[y][x]) grid[y][x] = ABC[Math.floor(Math.random() * 26)];
+    body.innerHTML = `<div class="card" style="align-items:stretch"><p class="question" style="text-align:center">Find the words</p>
+      <div class="clues" id="x-clues">${placed.map((p, i) => `<button class="clue" type="button" data-k="${i}"><span class="food">${picHTML(p.f)}</span><span class="cw">${"_ ".repeat(p.f.en.length).trim()}</span></button>`).join("")}</div>
+      <div class="ws" id="x-grid" style="grid-template-columns:repeat(${N},1fr);max-width:340px">${grid.flatMap((row, y) => row.map((ch, x) => `<div class="cell" data-y="${y}" data-x="${x}">${ch}</div>`)).join("")}</div>
+      <div class="reveal" id="x-fb" style="min-height:1.6em"><span class="pt">Arraste o dedo sobre a palavra, ou toque na primeira e na última letra.</span></div></div>`;
+    $("x-clues").querySelectorAll(".clue").forEach(b => b.addEventListener("click", () => { const p = placed[+b.dataset.k]; if (p.found) say(p.f.en); }));
+    const g = $("x-grid");
+    const P = el => [+el.dataset.y, +el.dataset.x];
+    const cellEl = ([y, x]) => g.children[y * N + x];
+    const line = (a, b) => {
+      const [y1, x1] = P(a), [y2, x2] = P(b);
+      if (y1 !== y2 && x1 !== x2) return null;
+      const n = Math.max(Math.abs(y2 - y1), Math.abs(x2 - x1)), dy = Math.sign(y2 - y1), dx = Math.sign(x2 - x1);
+      return Array.from({ length: n + 1 }, (_, k) => [y1 + dy * k, x1 + dx * k]);
+    };
+    const st = { start: null, end: null, pending: null };
+    const clearSel = () => g.querySelectorAll(".sel").forEach(n => n.classList.remove("sel"));
+    const preview = () => {
+      clearSel();
+      if (st.pending) st.pending.classList.add("sel");
+      if (st.start) (line(st.start, st.end) || [P(st.start)]).forEach(c => cellEl(c).classList.add("sel"));
+    };
+    const attempt = (a, b) => {
+      const cells = line(a, b); clearSel();
+      if (!cells) return;
+      const str = cells.map(([y, x]) => grid[y][x]).join(""), rev = [...str].reverse().join("");
+      const hit = placed.find(p => !p.found && (p.f.en === str || p.f.en === rev));
+      if (!hit) {
+        tone([300, 220]);
+        cells.forEach(c => { const el = cellEl(c); el.classList.add("bad"); setTimeout(() => el.classList.remove("bad"), 450); });
+        return;
+      }
+      hit.found = true;
+      hit.cells.forEach(c => cellEl(c).classList.add("found"));
+      const clue = $("x-clues").children[placed.indexOf(hit)];
+      clue.classList.add("found"); clue.querySelector(".cw").textContent = hit.f.en;
+      tone([660, 880, 1175]); setTimeout(() => say(hit.f.en), 250);
+      if (placed.every(p => p.found)) xAnswer(true, `<span class="pt">Você achou todas as palavras!</span>`);
+    };
+    g.addEventListener("pointerdown", e => {
+      const cell = e.target.closest(".cell"); if (!cell || xs.answered) return;
+      e.preventDefault();
+      if (st.pending && st.pending !== cell) { const p = st.pending; st.pending = null; attempt(p, cell); return; }
+      st.pending = null; st.start = st.end = cell; preview();
+    });
+    g.addEventListener("pointermove", e => {
+      if (!st.start) return;
+      const el = document.elementFromPoint(e.clientX, e.clientY), cell = el && el.closest("#x-grid .cell");
+      if (cell && cell !== st.end) { st.end = cell; preview(); }
+    });
+    xs.up = () => {
+      if (!st.start) return;
+      const a = st.start, b = st.end; st.start = st.end = null;
+      if (a !== b) attempt(a, b); else { st.pending = a; preview(); }
+    };
+  }
+  window.addEventListener("pointerup", () => xs && xs.up && xs.up());
+  window.addEventListener("pointercancel", () => xs && xs.up && xs.up());
+  window.addEventListener("resize", () => xs && xs.redraw && xs.redraw());
+
+  function xFinish() {
+    const N = xs.qs.length, score = xs.results.filter(r => r.ok).length;
+    const grade = Math.round((score / N) * 100) / 10;
+    const gradeTxt = grade.toLocaleString("pt-BR", { minimumFractionDigits: grade % 1 ? 1 : 0, maximumFractionDigits: 1 });
+    const wrongWords = xs.results.filter(r => !r.ok).flatMap(r => r.q.items);
+    $("x-run").hidden = true;
+    const d = $("x-done"); d.hidden = false;
+    d.innerHTML = `<div class="card result">
+        <p class="question">Sua nota</p>
+        <div class="grade">${gradeTxt}</div>
+        ${resultHTML(score, N, score === N ? "Perfect! Nota máxima!" : null)}
+        <p>Você acertou ${score} de ${N} questões.</p>
+        <ol class="review">${xs.results.map((r, i) => `<li class="${r.ok ? "ok" : "no"}"><span class="mark">${r.ok ? "✔" : "✘"}</span><span><b>${i + 1}. ${X_LABEL[r.q.type]}</b> · ${r.q.items.map(f => f.en).join(", ")}</span></li>`).join("")}</ol>
+        ${wrongWords.length ? `<p>Toque para ouvir as palavras para treinar:</p><div class="missed">${missedChips(wrongWords)}</div>` : ""}
+      </div>
+      <div style="height:16px"></div><button class="next" id="x-again" style="width:100%">Fazer outra prova</button>`;
+    $("x-again").addEventListener("click", xStart);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  $("x-next").addEventListener("click", () => { xs.redraw = xs.up = null; xs.idx++; xs.idx < xs.qs.length ? xShow() : xFinish(); });
+  $("x-begin").addEventListener("click", xStart);
+
   // ---- menu ----
   const MODES = ["quiz", "complete", "match", "search", "study"];
   const started = {};
-  const starters = { complete: cStart, match: mStart, search: sStart };
+  const starters = { complete: cStart, match: mStart, search: sStart, exam: xIntro };
   function setMode(m) {
     document.querySelectorAll(".modes button").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m));
     $("play").hidden = $("done").hidden = true;
-    ["complete", "match", "search", "study"].forEach(id => $(id).hidden = id !== m);
+    ["complete", "match", "search", "exam", "study"].forEach(id => $(id).hidden = id !== m);
     if (m === "quiz") { $("play").hidden = idx >= ROUNDS; $("done").hidden = idx < ROUNDS; }
     if (starters[m] && !started[m]) { started[m] = true; starters[m](); }
     if (m === "match") requestAnimationFrame(mDraw);
+    if (m === "exam" && xs && xs.redraw) requestAnimationFrame(xs.redraw);
   }
   document.querySelectorAll(".modes button").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
 
